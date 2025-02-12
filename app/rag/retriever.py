@@ -6,13 +6,14 @@ from sentence_transformers import SentenceTransformer
 
 class KnowledgeBase:
     def __init__(self, pasta_dados="data/documentos", modelo_embedding="sentence-transformers/all-MiniLM-L6-v2"):
+        """ Inicializa a base de conhecimento """
         self.pasta_dados = pasta_dados
         self.modelo_embedding = SentenceTransformer(modelo_embedding)
         self.index = None
         self.docs = []
 
     def carregar_documentos(self):
-        """ Lê os arquivos de texto e PDF dentro da pasta e armazena em uma lista. """
+        """ Lê os arquivos de texto e PDF dentro da pasta e armazena os conteúdos. """
         arquivos = [os.path.join(self.pasta_dados, f) for f in os.listdir(self.pasta_dados) if f.endswith(('.txt', '.pdf'))]
 
         for arquivo in arquivos:
@@ -22,7 +23,8 @@ class KnowledgeBase:
 
             elif arquivo.endswith('.pdf'):
                 texto_pdf = self.extrair_texto_pdf(arquivo)
-                self.docs.append(texto_pdf)
+                if texto_pdf.strip():
+                    self.docs.append(texto_pdf)
 
         print(f"✅ {len(self.docs)} documentos carregados.")
 
@@ -62,4 +64,4 @@ class KnowledgeBase:
 if __name__ == "__main__":
     kb = KnowledgeBase()
     kb.indexar_documentos()
-    print(kb.buscar_conhecimento("O que é inteligência artificial?"))
+    print(kb.buscar_conhecimento("O que é psicodinâmica do trabalho?"))
