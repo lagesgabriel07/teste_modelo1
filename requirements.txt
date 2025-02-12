@@ -1,0 +1,20 @@
+# Transcrição de áudio (Whisper)
+openai-whisper
+# Processamento de áudio e vídeos
+ffmpeg-python
+# Manipulação de PDFs
+pymupdf
+# Motor de busca vetorial (FAISS)
+faiss-cpu
+# Modelos de embeddings para NLP
+sentence-transformers
+# Modelo Llama para RAG
+llama-cpp-python==0.2.12  # Versão específica que você instalou
+# API para interface do sistema
+fastapi
+uvicorn
+# Outras dependências úteis
+numpy
+pandas
+scikit-learn
+tqdm
