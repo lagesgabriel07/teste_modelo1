@@ -1,23 +1,36 @@
-from llama_cpp import Llama
-from rag.retriever import KnowledgeBase
+from transformers import pipeline
 
 class LLAMAModel:
-    def __init__(self, modelo_path="models/llama-7b.ggmlv3.q4_0.bin"):
-        """ Inicializa o modelo LLAMA """
-        self.model = Llama(model_path=modelo_path)
-        self.kb = KnowledgeBase()
-        self.kb.indexar_documentos()
+    def __init__(self):
+        """ Inicializa o modelo de linguagem """
+        self.pipeline = pipeline("text-generation", model="meta-llama/Llama-2-7b-chat-hf")
 
-    def gerar_resposta(self, pergunta):
-        """ Busca contexto na base de conhecimento e gera resposta """
-        documentos_relevantes = self.kb.buscar_conhecimento(pergunta)
-        contexto = " ".join(documentos_relevantes[:3])  # Usa os 3 documentos mais relevantes
+    def gerar_resposta(self, pergunta, documentos_relevantes):
+        """ Gera uma resposta usando LLAMA com base nos documentos encontrados """
 
-        prompt = f"Contexto:\n{contexto}\n\nPergunta: {pergunta}\n\nResposta:"
-        resposta = self.model(prompt, max_tokens=200)
-        return resposta['choices'][0]['text'].strip()
+        if not documentos_relevantes:
+            return "⚠️ Nenhum documento relevante encontrado para responder à pergunta."
+
+        # Concatena os documentos mais relevantes para formar o contexto
+        contexto = " ".join(documentos_relevantes[:3])
+
+        # Formata o prompt de entrada
+        prompt = f"""Você é um assistente especializado. Responda a seguinte pergunta com base no contexto fornecido.
+
+        Contexto:
+        {contexto}
+
+        Pergunta: {pergunta}
+
+        Resposta:"""
+
+        # Gera resposta com o modelo LLaMA
+        resposta = self.pipeline(prompt, max_length=300, truncation=True)
+
+        return resposta[0]["generated_text"].split("Resposta:")[-1].strip()
 
 # Teste rápido
 if __name__ == "__main__":
-    llm = LLAMAModel()
-    print(llm.gerar_resposta("Quais são os riscos psicossociais no trabalho?"))
+    modelo_llama = LLAMAModel()
+    documentos = ["O Burnout é uma condição psicológica causada por estresse crônico no trabalho."]
+    print(modelo_llama.gerar_resposta("Quais são os sintomas da síndrome de Burnout?", documentos))
