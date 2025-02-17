@@ -1,34 +1,77 @@
-import whisper
+import logging
+import torch
+from whisper import load_model
 from pathlib import Path
+from app.api.audio_processing.audio_handler import AudioHandler
 
-# Definir os caminhos corretamente dentro da pasta `data`
-PASTA_AUDIOS = Path("data/audios")  # Agora busca dentro da pasta do projeto
-PASTA_TRANSCRICOES = Path("data/transcricoes")  
+# Configuração do logger
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logger = logging.getLogger(__name__)
 
-# Criar a pasta de transcrições caso não exista
-PASTA_TRANSCRICOES.mkdir(parents=True, exist_ok=True)
+class Transcriber:
+    def __init__(self, audio_handler: AudioHandler, model_name: str = "medium"):
+        """
+        Inicializa o transcritor com um manipulador de áudio e o modelo Whisper.
+        """
+        self.audio_handler = audio_handler
+        self.model = self.load_whisper_model(model_name)
 
-class AudioTranscriber:
-    def __init__(self, modelo="medium"):
-        """ Inicializa o modelo Whisper. """
-        self.model = whisper.load_model(modelo)
+    def load_whisper_model(self, model_name: str):
+        """
+        Carrega o modelo Whisper, garantindo que esteja disponível para uso.
+        """
+        logger.info("Carregando o modelo Whisper: %s", model_name)
+        try:
+            return load_model(model_name)
+        except Exception as e:
+            logger.error("Erro ao carregar o modelo Whisper: %s", str(e))
+            raise e
 
-    def transcrever_audio(self, arquivo_audio: Path):
-        """ Transcreve um arquivo de áudio usando Whisper. """
+    def get_latest_audio_file(self) -> str:
+        """
+        Obtém o arquivo de áudio mais recente no diretório especificado.
+        """
+        audio_files = sorted(
+            Path(self.audio_handler.audio_directory).glob("*.mp3"),
+            key=lambda f: f.stat().st_mtime,
+            reverse=True
+        )
+        
+        if not audio_files:
+            logger.error("Nenhum arquivo de áudio encontrado no diretório: %s", self.audio_handler.audio_directory)
+            raise FileNotFoundError("Nenhum arquivo de áudio encontrado.")
+        
+        latest_file = str(audio_files[0])
+        logger.info("Último arquivo de áudio encontrado: %s", latest_file)
+        return latest_file
 
-        if not arquivo_audio.exists():
-            raise FileNotFoundError(f"O arquivo '{arquivo_audio}' não foi encontrado!")
+    def transcribe_audio(self, filename: str = None) -> str:
+        """
+        Transcreve um arquivo de áudio. Se nenhum nome for fornecido, usa o mais recente.
+        """
+        if filename is None:
+            filename = self.get_latest_audio_file()
+        
+        audio_path = self.audio_handler.get_audio_file(filename)
+        logger.info("Transcrevendo áudio: %s", audio_path)
+        
+        try:
+            result = self.model.transcribe(audio_path)
+            transcription = result['text']
+            logger.info("Transcrição concluída com sucesso.")
+            return transcription
+        except Exception as e:
+            logger.error("Erro ao transcrever o áudio: %s", str(e))
+            raise e
 
-        print(f"\n🔊 Processando: {arquivo_audio}")
-        resultado = self.model.transcribe(str(arquivo_audio), language="pt")
-        texto_transcrito = resultado["text"]
+# Execução principal
+if __name__ == "__main__":
+    audio_directory = './data/audios'
+    audio_handler = AudioHandler(audio_directory)
+    transcriber = Transcriber(audio_handler)
 
-        print(f"\n📝 Transcrição:\n", texto_transcrito)
-
-        # Salvar a transcrição em um arquivo de texto
-        caminho_saida = PASTA_TRANSCRICOES / f"{arquivo_audio.stem}_transcricao.txt"
-        with open(caminho_saida, "w", encoding="utf-8") as f:
-            f.write(texto_transcrito)
-
-        print(f"\n✅ Transcrição salva em: {caminho_saida}")
-        return texto_transcrito
+    try:
+        transcription = transcriber.transcribe_audio()  # Agora ele busca automaticamente o último arquivo
+        print("Transcrição:", transcription)
+    except Exception as e:
+        print("Erro durante a transcrição:", str(e))
