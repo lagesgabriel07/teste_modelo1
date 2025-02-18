@@ -1,20 +1,23 @@
-# Transcrição de áudio (Whisper)
-openai-whisper
-# Processamento de áudio e vídeos
-ffmpeg-python
-# Manipulação de PDFs
-pymupdf
-# Motor de busca vetorial (FAISS)
-faiss-cpu
-# Modelos de embeddings para NLP
-sentence-transformers
-# Modelo Llama para RAG
-llama-cpp-python==0.2.12  # Versão específica que você instalou
-# API para interface do sistema
-fastapi
-uvicorn
-# Outras dependências úteis
-numpy
-pandas
-scikit-learn
-tqdm
+# 🚀 Bibliotecas principais
+transformers==4.35.2  # Hugging Face Transformers para modelos como LLaMA
+torch==2.1.0  # PyTorch para rodar modelos de IA
+sentence-transformers==2.2.2  # Para embeddings semânticos (RAG)
+faiss-cpu==1.7.4  # Indexação vetorial para busca semântica
+
+# 🚀 Manipulação de arquivos e documentos
+PyMuPDF==1.22.3  # (fitz) para extração de texto de PDFs
+pydub==0.25.1  # Para manipulação de áudio
+speechrecognition==3.10.0  # Para transcrição de áudio via reconhecimento de voz
+
+
+# 🚀 Frameworks para API (se necessário)
+fastapi==0.100.0  # API REST para expor endpoints (se for utilizar)
+uvicorn==0.22.0  # Servidor ASGI para rodar o FastAPI
+
+# 🚀 Logs e Utilidades
+python-dotenv==1.0.0  # Para carregar variáveis de ambiente de .env
+
+
+# 🚀 Dependências opcionais para otimização
+bitsandbytes==0.41.1  # Quantização do modelo para rodar mais rápido
+accelerate==0.23.0  # Otimização de inferência em modelos grandes
