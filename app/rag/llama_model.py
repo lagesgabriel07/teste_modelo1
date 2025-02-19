@@ -17,11 +17,11 @@ class LLAMAModel:
             max_new_tokens=500,  # Evita truncamentos errados
         )
 
-        # Modelo para similaridade semântica (Sentence Transformers)
+        # Similaridade semântica (Sentence Transformers)
         self.embedding_model = SentenceTransformer(modelo_embedding)
 
     def selecionar_documentos_relevantes(self, pergunta, documentos):
-        """ Seleciona os documentos mais relevantes para a pergunta usando similaridade semântica """
+        """ Seleciona os documentos mais relevantes  """
 
         if not documentos:
             return []
